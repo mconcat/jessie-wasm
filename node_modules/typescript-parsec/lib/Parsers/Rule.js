@@ -1,0 +1,72 @@
+"use strict";
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.expectSingleResult = exports.expectEOF = exports.rule = void 0;
+var Lexer_1 = require("../Lexer");
+var ParserInterface_1 = require("./ParserInterface");
+var RuleImpl = /** @class */ (function () {
+    function RuleImpl() {
+        // nothing
+    }
+    RuleImpl.prototype.setPattern = function (parser) {
+        this.parser = parser;
+    };
+    RuleImpl.prototype.parse = function (token) {
+        if (this.parser === undefined) {
+            throw new Error("Rule has not been initialized. setPattern is required before calling parse.");
+        }
+        return this.parser.parse(token);
+    };
+    return RuleImpl;
+}());
+function rule() {
+    return new RuleImpl();
+}
+exports.rule = rule;
+function expectEOF(output) {
+    if (!output.successful) {
+        return output;
+    }
+    if (output.candidates.length === 0) {
+        return {
+            successful: false,
+            error: {
+                kind: 'Error',
+                pos: undefined,
+                message: 'No result is returned.'
+            }
+        };
+    }
+    var filtered = [];
+    var error = output.error;
+    for (var _i = 0, _a = output.candidates; _i < _a.length; _i++) {
+        var candidate = _a[_i];
+        if (candidate.nextToken === undefined) {
+            filtered.push(candidate);
+        }
+        else {
+            error = ParserInterface_1.betterError(error, {
+                kind: 'Error',
+                pos: candidate.nextToken === undefined ? undefined : candidate.nextToken.pos,
+                message: "The parser cannot reach the end of file, stops at \"" + candidate.nextToken.text + "\" at position " + JSON.stringify(candidate.nextToken.pos) + "."
+            });
+        }
+    }
+    return ParserInterface_1.resultOrError(filtered, error, filtered.length !== 0);
+}
+exports.expectEOF = expectEOF;
+function expectSingleResult(output) {
+    if (!output.successful) {
+        throw new Lexer_1.TokenError(output.error.pos, output.error.message);
+    }
+    if (output.candidates.length === 0) {
+        throw new Lexer_1.TokenError(undefined, 'No result is returned.');
+    }
+    if (output.candidates.length !== 1) {
+        throw new Lexer_1.TokenError(undefined, 'Multiple results are returned.');
+    }
+    return output.candidates[0].result;
+}
+exports.expectSingleResult = expectSingleResult;
+//# sourceMappingURL=Rule.js.map

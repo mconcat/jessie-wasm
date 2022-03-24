@@ -1,0 +1,38 @@
+"use strict";
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.amb = void 0;
+function amb(p) {
+    return {
+        parse: function (token) {
+            var branches = p.parse(token);
+            if (!branches.successful) {
+                return branches;
+            }
+            var group = new Map();
+            for (var _i = 0, _a = branches.candidates; _i < _a.length; _i++) {
+                var r = _a[_i];
+                var rs = group.get(r.nextToken);
+                if (rs === undefined) {
+                    group.set(r.nextToken, [r]);
+                }
+                else {
+                    rs.push(r);
+                }
+            }
+            return {
+                candidates: Array.from(group.values())
+                    .map(function (rs) { return ({
+                    firstToken: rs[0].firstToken,
+                    nextToken: rs[0].nextToken,
+                    result: rs.map(function (r) { return r.result; })
+                }); }),
+                successful: true,
+                error: branches.error
+            };
+        }
+    };
+}
+exports.amb = amb;
+//# sourceMappingURL=AmbiguousParser.js.map

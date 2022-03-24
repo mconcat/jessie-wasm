@@ -1,0 +1,34 @@
+"use strict";
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.opt_sc = exports.opt = void 0;
+var AlternativeParser_1 = require("./AlternativeParser");
+var TokenParser_1 = require("./TokenParser");
+function opt(p) {
+    return AlternativeParser_1.alt(p, TokenParser_1.nil());
+}
+exports.opt = opt;
+function opt_sc(p) {
+    return {
+        parse: function (token) {
+            var output = p.parse(token);
+            if (output.successful) {
+                return output;
+            }
+            else {
+                return {
+                    candidates: [{
+                            firstToken: token,
+                            nextToken: token,
+                            result: undefined
+                        }],
+                    successful: true,
+                    error: output.error
+                };
+            }
+        }
+    };
+}
+exports.opt_sc = opt_sc;
+//# sourceMappingURL=OptionalParser.js.map
