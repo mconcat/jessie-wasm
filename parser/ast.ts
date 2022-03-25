@@ -1,11 +1,12 @@
-import { TokenKind } from './lexer.ts';
+import { TokenKind } from './lexer';
 import * as parsec from 'typescript-parsec';
+import { BigIntOptions } from 'fs';
 
 type Token = parsec.Token<TokenKind>;
 
 export type DataLiteral =
   | NullLiteral
-    BoolLiteral
+  | BoolLiteral
   | NumberLiteral
   | StringLiteral
 
@@ -22,8 +23,12 @@ export interface BoolLiteral {
   data: boolean;
 }
 
-export function applyBoolLiteral(value: Token): DataLiteral {
-  return { kind: 'BoolLiteral', data: {"false": false, "true": true}[value.text] };
+export function applyFalseLiteral(value: Token): DataLiteral {
+  return { kind: 'BoolLiteral', data: false };
+}
+
+export function applyTrueLiteral(value: Token): DataLiteral {
+  return { kind: 'BoolLiteral', data: true };
 }
 
 export interface NumberLiteral {
@@ -67,6 +72,28 @@ export type ArrayElement =
   | AssignExpr
   | AssignExprWithEllipses
 
+export interface PureProp {
+   kind: 'PureProp';
+   name: string;
+   expr: PureExpr;
+}
+
+export type PurePropDef =
+  | PureProp
+  | UseVar 
+  | AssignExprWithEllipses
+
+export interface Prop {
+  kind: 'Prop';
+  name: string;
+  expr: AssignExpr;
+}
+
+export type PropDef =
+  | Prop
+  | UseVar 
+  | AssignExprWithEllipses
+
 export interface PureRecord {
   kind: 'PureRecord';
   data: PurePropDef[];
@@ -89,18 +116,27 @@ export function applyRecord(value: PropDef[]): Record {
 
 // XXX: purepropdef, propdef
 
+export interface Expr {
+  expr: AssignExpr;
+}
+
 export type AssignExpr =
   | PrimaryExpr
+  | CondExpr
 
 export interface AssignExprWithEllipses {
   kind: "AssignExprWithEllipses";
   data: AssignExpr;
 }
 
+export interface UseVar {
+  name: string;
+}
+
 export type PrimaryExpr =
   | DataStructure
 //  | QuasiExpr // later
-  | AssignExpr
+  | Expr
   | UseVar
 
 export type DataStructure =
@@ -138,13 +174,15 @@ export function applyGetMember(value: Token): MemberPostOp {
   return { kind: 'GetMember', data: value.text }
 }
 
+export type PreOp = 'VoidOp' | 'TypeofOp' | 'PositiveOp' | 'NegativeOp' | 'TildeOp' | 'BangOp'
+
 export interface UnaryExpr {
   kind: 'UnaryExpr';
   preops: PreOp[];
   data: CallExpr;
 }
 
-export function applyUnaryExpr(value: [Preop[], CallExpr]): UnaryExpr {
+export function applyUnaryExpr(value: [PreOp[], CallExpr]): UnaryExpr {
   return { kind: 'UnaryExpr', preops: value[0], data: value[1] }
 }
 
@@ -155,12 +193,12 @@ export interface CallExpr {
 }
 
 export function applyCallExpr(value: [PrimaryExpr, CallPostOp[]]): CallExpr {
-  return { Kind: 'CallExpr', data: value[0], postops: value[1] }
+  return { kind: 'CallExpr', data: value[0], postops: value[1] }
 } 
 
 export type CallPostOp =
   | MemberPostOp
-  | Args
+  | AssignExprWithEllipses[]
 
 export interface CondExpr {
   kind: 'CondExpr';
@@ -178,15 +216,30 @@ export interface BinaryExpr<Kind, BinOp, Child> {
   children: [BinOp, Child][]
 }
 
-export function applyBinaryExpr<Kind, BinOp, Child>(value: [Child, [BinOp, Child][]]): BinaryExpr<Kind, Binop, Child> {
-  return { kind: Kind, data: value[0], children: value[1] }
+export function applyBinaryExpr<Kind, BinOp, Child>(kind: Kind, value: [Child, [BinOp, Child][]]): BinaryExpr<Kind, BinOp, Child> {
+  return { kind: kind, data: value[0], children: value[1] }
 }
 
-export type OrElseExpr = BinaryExpr<'OrElseExpr', OrElseOp, AndThenExpr>
-export type AndThenExpr = BinaryExpr<'AndThenExpr', AndThenOp, EagerExpr>
+export type OrElseExpr = BinaryExpr<'OrElseExpr', 'OrElseOp', AndThenExpr>
+export type AndThenExpr = BinaryExpr<'AndThenExpr', 'AndThenOp', EagerExpr>
+
+export type RelOp = 'LessEqualOp' | 'LessOp' | 'GreaterEqalOp' | 'GreaterOp'
+export type EqOp = 'EqualOp' | 'NotEqualOp'
+export type BitOp = 'BitAndOp' | 'BitXorOp' | 'BitOrOp'
+export type EagerOp =
+  | RelOp
+  | EqOp
+  | BitOp
+
 export type EagerExpr = BinaryExpr<'EagerExpr', EagerOp, ShiftExpr>;
+
+export type ShiftOp = 'LeftShiftOp' | 'RightShiftOp' | 'UnsignedRightShiftOp'
 export type ShiftExpr = BinaryExpr<'ShiftExpr', ShiftOp, AddExpr>;
+
+export type AddOp = 'AddOp' | 'SubOp'
 export type AddExpr = BinaryExpr<'AddExpr', AddOp, MultExpr>;
+
+export type MultOp = 'MultOp' | 'DivOp' | 'ModOp'
 export type MultExpr = BinaryExpr<'MultExpr', MultOp, PowExpr>;
 
 export interface PowExpr {

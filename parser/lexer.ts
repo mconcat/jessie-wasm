@@ -1,6 +1,6 @@
 import { buildLexer } from 'typescript-parsec';
 
-enum TokenKind {
+export enum TokenKind {
   // symbols
   LParen,
   RParen,
@@ -57,6 +57,7 @@ enum TokenKind {
   Try,
   Void,
   While,
+  Undefined,
 
   SemiColon,
 
@@ -78,6 +79,7 @@ const lexer = buildLexer([
   [true, /^for/g, TokenKind.For],
   [true, /^of/g, TokenKind.Of],
   [true, /^switch/g, TokenKind.Switch],
+  [true, /^undefined/g, TokenKind.Undefined],
 
   [true, /^(\*|\/|\%)/g, TokenKind.MulLevelOp],
   [true, /^(\+|\-)/g, TokenKind.AddLevelOp],
@@ -91,7 +93,7 @@ const lexer = buildLexer([
   [true, /^\./g, TokenKind.Dot],
   [true, /^\.\.\./g, TokenKind.Ellipsis],
   [true, /^\?/g, TokenKind.Question],
-  [true, /^\*\*/g, TokenKind.Starstar,
+  [true, /^\*\*/g, TokenKind.Starstar],
 
   [true, /^\(/g, TokenKind.LParen],
   [true, /^\)/g, TokenKind.RParen],
