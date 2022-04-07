@@ -64,13 +64,21 @@ export interface Array {
   data: ArrayElement[];
 }
 
-export function applyArray(value: ArrayElement[]): Array {
-  return { kind: 'Array', data: value };
+export function applyArray(value: ArrayElement): Array {
+  return { kind: 'Array', data: [value] };
+}
+
+export function appendArray(arr: Array, value: ArrayElement): Array {
+  return { kind: 'Array', data: arr.data.concat([value]) }
 }
 
 export type ArrayElement =
   | AssignExpr
   | AssignExprWithEllipses
+
+export function applyElement(ellipsis: TokenKind|undefined, expr: AssignExpr): ArrayElement {
+  return ellipsis ? { kind: 'AssignExprWithEllipses', expr: expr } : expr
+}
 
 export interface PureProp {
    kind: 'PureProp';
@@ -83,6 +91,10 @@ export type PurePropDef =
   | UseVar 
   | AssignExprWithEllipses
 
+export function applyPurePropDef(name: string, expr?: PureExpr): PurePropDef {
+  return expr ? { kind: 'PureProp', name, expr } : { kind: 'UseVar', name }
+}
+
 export interface Prop {
   kind: 'Prop';
   name: string;
@@ -94,16 +106,22 @@ export type PropDef =
   | UseVar 
   | AssignExprWithEllipses
 
+export function applyPropDef(name: string, expr?: AssignExpr): PropDef {
+  return expr ? { kind: 'Prop', name, expr } : { kind: 'UseVar', name }
+}
+
 export interface PureRecord {
   kind: 'PureRecord';
   data: PurePropDef[];
 }
 
-export function applyPureRecord(value: PurePropDef[]): PureRecord {
-  return { kind: 'PureRecord', data: value };
+export function applyPureRecord(value: PurePropDef): PureRecord {
+  return { kind: 'PureRecord', data: [value] };
 }
 
-
+export function appendPureRecord(arr: PureRecord, value: PurePropDef): PureRecord {
+  return { kind: 'PureRecord', data: arr.data.concat([value]) }
+}
 export interface Record {
   kind: 'Record';
   data: PropDef[];
@@ -126,10 +144,11 @@ export type AssignExpr =
 
 export interface AssignExprWithEllipses {
   kind: "AssignExprWithEllipses";
-  data: AssignExpr;
+  expr: AssignExpr;
 }
 
 export interface UseVar {
+  kind: 'UseVar';
   name: string;
 }
 

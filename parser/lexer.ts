@@ -64,7 +64,7 @@ export enum TokenKind {
   Space
 }
 
-const lexer = buildLexer([
+export const lexer = buildLexer([
   [true, /^(\".*\"|\'.*\')/g, TokenKind.String],
   [true, /^\d+(\.\d+)?/g, TokenKind.Number],
   [true, /^false/g, TokenKind.False],
