@@ -17,10 +17,11 @@ export enum TokenKind {
 
   // data literals
   Null,
-  False,
-  True,
+  Bool,
   Number,
   String,
+
+  Undefined,
 
   // Ops
   MulLevelOp, // Mul, Div, Mod
@@ -35,29 +36,9 @@ export enum TokenKind {
   // Ident
   Ident,
 
-  // Predefined
-  Const,
-  Func,
-  Let,
-  Import,
-  Export,
-  Default,
-  For,
-  Of,
-  Switch,
-
-  Case,
-  Catch,
-  Continue,
-  Else,
-  Finally,
-  If,
-  Return,
-  Throw,
-  Try,
-  Void,
-  While,
-  Undefined,
+  Keyword,
+  Reserved,
+  FutureReserved,
 
   SemiColon,
 
@@ -65,21 +46,15 @@ export enum TokenKind {
 }
 
 export const lexer = buildLexer([
-  [true, /^(\".*\"|\'.*\')/g, TokenKind.String],
-  [true, /^\d+(\.\d+)?/g, TokenKind.Number],
-  [true, /^false/g, TokenKind.False],
-  [true, /^true/g, TokenKind.True],
+  [true, /^('([^']|\\.)*'|"([^"]|\\.)*")/, TokenKind.String], // TODO: escape
+  [true, /^[\+\-]?\d+(\.\d+|n)?/g, TokenKind.Number], // either integer, decimal, or bigint. decimals are considered as bigints.
+  [true, /^(false|true)/g, TokenKind.Bool],
   [true, /^null/g, TokenKind.Null],
-
-  [true, /^const/g, TokenKind.Const],
-  [true, /^function/g, TokenKind.Func],
-  [true, /^let/g, TokenKind.Let],
-  [true, /^import/g, TokenKind.Import],
-  [true, /^export/g, TokenKind.Export],
-  [true, /^for/g, TokenKind.For],
-  [true, /^of/g, TokenKind.Of],
-  [true, /^switch/g, TokenKind.Switch],
   [true, /^undefined/g, TokenKind.Undefined],
+
+  [true, /^(break|case|catch|const|continue|debugger|default|else|export|finally|for|function|if|import|return|switch|throw|try|typeof|void|while)/g, TokenKind.Keyword],
+  [true, /^(class|delete|do|extends|instanceof|in|new|super|this|var|with|yield)/g, TokenKind.Reserved],
+  [true, /^(await|enum|implements|package|protected|interface|private|public)/g, TokenKind.FutureReserved],
 
   [true, /^(\*|\/|\%)/g, TokenKind.MulLevelOp],
   [true, /^(\+|\-)/g, TokenKind.AddLevelOp],
@@ -105,6 +80,8 @@ export const lexer = buildLexer([
   [true, /^\:/g, TokenKind.Colon],
 
   [true, /^\;/g, TokenKind.SemiColon],
+
+  [true, /^[a-zA-Z_][a-zA-Z0-9_]*/g, TokenKind.Ident],
 
   [false, /^\s+/g, TokenKind.Space],
 ])
