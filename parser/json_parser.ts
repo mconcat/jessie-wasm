@@ -23,18 +23,18 @@ function seperatedList<Kind, Elem>(
     )
 }
 
+// PureExpr, PureArray, PureRecord is used for hardened expression, 
+// which will be checked by static analyzer phase.
+// Ommiting them inside of the parser.
+
 export const ASSIGN_EXPR = rule<TokenKind, ast.AssignExpr>();
 export const PRIMARY_EXPR = rule<TokenKind, ast.PrimaryExpr>();
-export const PURE_EXPR = rule<TokenKind, ast.PureExpr>();
 
 export const IDENT = rule<TokenKind, ast.Ident>();
 export const DATA_STRUCTURE = rule<TokenKind, ast.DataStructure>();
 export const DATA_LITERAL = rule<TokenKind, ast.DataLiteral>();
 export const ARRAY = rule<TokenKind, ast.Array>();
-export const PURE_ARRAY = rule<TokenKind, ast.PureArray>();
 export const ELEMENT = rule<TokenKind, ast.Element>();
-export const PURE_RECORD = rule<TokenKind, ast.PureRecord>();
-export const PURE_PROP_DEF = rule<TokenKind, ast.PurePropDef>();
 export const RECORD = rule<TokenKind, ast.Record>();
 export const PROP_DEF = rule<TokenKind, ast.PropDef>();
 export const PROP_NAME = rule<TokenKind, ast.DataLiteral>();
@@ -70,31 +70,6 @@ ARRAY.setPattern(
     ) 
 )
 
-PURE_ARRAY.setPattern(
-    seperatedList(
-        TokenKind.LBracket,
-        PURE_EXPR, 
-        'PureArray',
-        TokenKind.RBracket,
-    )
-)
-
-PURE_RECORD.setPattern(
-    seperatedList(
-        TokenKind.LBrace,
-        PURE_PROP_DEF,
-        'PureRecord',
-        TokenKind.RBrace,
-    )
-)
-
-PURE_PROP_DEF.setPattern(
-    apply(
-        seq(PROP_NAME, opt(kright(tok(TokenKind.Colon), PURE_EXPR))), 
-        ([name, expr]) => ast.applyPurePropDef(name, expr),
-    )
-)
-
 PROP_DEF.setPattern(
     apply(
         seq(PROP_NAME, opt(kright(tok(TokenKind.Colon), ASSIGN_EXPR))), 
@@ -120,16 +95,6 @@ DATA_STRUCTURE.setPattern(
     )
 )
 
-PURE_EXPR.setPattern(
-    alt(
-        DATA_LITERAL, 
-        PURE_ARRAY, 
-        PURE_RECORD,
-        // USeVar
-        // ArrowFunc
-    ) 
-)
-    
 PRIMARY_EXPR.setPattern(
     // alt(DATA_STRUCTURE, EXPR, USEVAR)
     DATA_STRUCTURE

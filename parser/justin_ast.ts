@@ -43,7 +43,7 @@ export function applyCallExpr(value: [json.PrimaryExpr, CallPostOp[]]): CallExpr
 
 export type CallPostOp =
   | MemberPostOp
-  | json.AssignExprWithEllipses[] // function call, function(args...)
+  | json.Element[] // function call, function(args...)
  
 export function applyCallPostOp(exprs: [Token|undefined, json.AssignExpr][]): CallPostOp {
   return exprs.map((expr) => expr[0] ? { kind: 'AssignExprWithEllipses', expr: expr[1] } : expr[1])
@@ -77,8 +77,10 @@ export function append<Kind, BinOp, Child>(kind: Kind) {
   }
 }
 
-export type OrElseExpr = BinaryExpr<'OrElseExpr', 'OrElseOp', AndThenExpr>
-export type AndThenExpr = BinaryExpr<'AndThenExpr', 'AndThenOp', EagerExpr>
+export type OrElseOp = 'OrElseOp'
+export type OrElseExpr = BinaryExpr<'OrElseExpr', OrElseOp, AndThenExpr>
+export type AndThenOp = 'AndThenOp' 
+export type AndThenExpr = BinaryExpr<'AndThenExpr', AndThenOp, EagerExpr>
 
 export type RelOp = 'LessEqualOp' | 'LessOp' | 'GreaterEqualOp' | 'GreaterOp'
 export function applyRelOp(value: Token): RelOp|undefined {

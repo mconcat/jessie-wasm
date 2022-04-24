@@ -69,16 +69,6 @@ export function append<Kind, Elem>(kind: Kind) {
   }
 }
 
-// [ pureExpr ** , ]
-export interface PureArray {
-  kind: 'PureArray';
-  data: PureExpr[];
-}
-
-export function applyPureArray(value: PureExpr[]): PureArray {
-  return { kind: 'PureArray', data: value };
-}
-
 export interface Array {
   kind: 'Array';
   data: Element[];
@@ -104,21 +94,6 @@ export function applyElement(ellipsis: Token|undefined, expr: AssignExpr): Eleme
   return ellipsis ? { kind: 'AssignExprWithEllipses', expr: expr } : expr
 }
 
-export interface PureProp {
-   kind: 'PureProp';
-   name: DataLiteral;
-   expr: PureExpr;
-}
-
-export type PurePropDef =
-  | PureProp
-  | UseVar 
-  | AssignExprWithEllipses
-
-export function applyPurePropDef(name: DataLiteral, expr?: PureExpr): PurePropDef {
-  return expr ? { kind: 'PureProp', name, expr } : { kind: 'UseVar', name: (name as StringLiteral).data }
-}
-
 export interface Prop {
   kind: 'Prop';
   name: DataLiteral;
@@ -127,29 +102,13 @@ export interface Prop {
 
 export type PropDef =
   | Prop
-  | UseVar 
+  | UseVar
   | AssignExprWithEllipses
 
 export function applyPropDef(name: DataLiteral, expr?: AssignExpr): PropDef {
   return expr ? { kind: 'Prop', name, expr } : { kind: 'UseVar', name: (name as StringLiteral).data }
 }
 
-export interface PureRecord {
-  kind: 'PureRecord';
-  data: PurePropDef[];
-}
-
-export function emptyPureRecord(): PureRecord {
-  return { kind: 'PureRecord', data: [] }
-}
-
-export function applyPureRecord(value: PurePropDef): PureRecord {
-  return { kind: 'PureRecord', data: [value] };
-}
-
-export function appendPureRecord(arr: PureRecord, value: PurePropDef): PureRecord {
-  return { kind: 'PureRecord', data: arr.data.concat([value]) }
-}
 export interface Record {
   kind: 'Record';
   data: PropDef[];
@@ -205,10 +164,3 @@ export interface Undefined {
 export function applyUndefined(value: Token): DataStructure {
   return { kind: 'Undefined' }
 }
-
-export type PureExpr =
-  | DataLiteral
-  | PureArray
-  | PureRecord
-  | UseVar
-
