@@ -18,31 +18,31 @@ export function applyNullLiteral(value: Token): DataLiteral {
 }
 
 export interface BoolLiteral {
-  kind: 'BoolLiteral';
+  kind: 'BooleanLiteral';
   data: boolean;
 }
 
-export function applyBoolLiteral(value: Token): DataLiteral {
-  return { kind: 'BoolLiteral', data: value.text == 'true' ? true : false };
-}
+export function BooleanLiteral(value: boolean): BoolLiteral { return { kind: 'BooleanLiteral', data: value } }
+
+export function applyBoolLiteral(value: Token): DataLiteral { return BooleanLiteral(value.text == 'true' ? true : false ) }
 
 export interface NumberLiteral {
   kind: 'NumberLiteral';
   data: string; // using string for handling fixed point decimal and bigints
 }
 
-export function applyNumberLiteral(value: Token): DataLiteral {
-  return { kind: 'NumberLiteral', data: value.text };
-}
+export function NumberLiteral(value: string): NumberLiteral { return { kind: 'NumberLiteral', data: value } }
+
+export function applyNumberLiteral(value: Token): DataLiteral { return NumberLiteral(value.text) }
 
 export interface StringLiteral {
   kind: 'StringLiteral';
   data: string;
 }
 
-export function applyStringLiteral(value: Token): DataLiteral {
-  return { kind: 'StringLiteral', data: value.text.slice(1, -1) }; 
-}
+export function StringLiteral(value: string): StringLiteral { return { kind: 'StringLiteral', data: value } }
+
+export function applyStringLiteral(value: Token): DataLiteral { return StringLiteral(value.text.slice(1, -1)) } 
 
 export interface Ident {
   kind: 'Ident';
@@ -131,9 +131,10 @@ export interface Expr {
   expr: AssignExpr;
 }
 
-export type AssignExpr =
-  | PrimaryExpr
-  // | CondExpr
+export interface AssignExpr {
+  kind: 'AssignExpr';
+  expr: PrimaryExpr; // | CondExpr...
+}
 
 export interface AssignExprWithEllipses {
   kind: "AssignExprWithEllipses";
