@@ -166,6 +166,8 @@ export interface Undefined {
   kind: 'Undefined';
 }
 
+export function Undefined(): Undefined { return { kind: 'Undefined' } }
+
 export function applyUndefined(value: Token): DataStructure {
   return { kind: 'Undefined' }
 }

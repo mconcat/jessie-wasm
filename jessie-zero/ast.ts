@@ -42,7 +42,7 @@ export interface Record {
     fields: [string, Expr, Attribute][]
 }
 
-export function Record(fields: [string, Expr][]): Record {
+export function Record(fields: [string, Expr, Attribute][]): Record {
     return { kind: 'Record', fields }
 }
 
@@ -70,17 +70,13 @@ export interface CondExpr {
     ifFalse: Expr
 }
 
+export function CondExpr(cond: Expr, ifTrue: Expr, ifFalse: Expr): CondExpr {
+    return { kind: 'CondExpr', cond, ifTrue, ifFalse }
+}
+
 // Arithmetic Operations
-export type BinaryOp = 
-    | justin.OrElseOp
-    | justin.AndThenOp
-    | justin.RelOp
-    | justin.EqOp
-    | justin.BitOp
-    | justin.ShiftOp
-    | justin.AddOp
-    | justin.MultOp
-    | 'PowOp'
+export type BinaryOp =
+    | "||" | "??" | "&&" | "|" | "^" | "&" | "===" | "!==" | "<=" | "<" | ">=" | ">" | "<<" | ">>>" | ">>" | "+" | "-" | "*" | "/" | "%" | "**"
 
 // i64.eqz
 // i64.eq
@@ -95,6 +91,10 @@ export interface BinaryExpr {
     op: BinaryOp
     left: Expr;
     right: Expr;
+}
+
+export function BinaryExpr(left: Expr, right: Expr, op: BinaryOp): BinaryExpr {
+    return { kind: 'BinaryExpr', left, right, op }
 }
 
 // i64.{clz, ctx, popcnt}
@@ -157,12 +157,20 @@ ModuleItem = ImportDeclaration | ExportDeclaration | 'const' Ident '=' Expr
 
 export interface ArrowFunction {
     kind: 'ArrowFunction'
-    args: Ident[]
+    args: FunctionArg[]
     body: Block|Expr
 }
 
-export function ArrowFunction(args: Ident[], body: Block|Expr): ArrowFunction {
-    return { kind: 'ArrowFunction', args, body }
+export interface FunctionArg {
+    name: Ident
+}
+
+export function FunctionArg(name: string, type?: Type): FunctionArg {
+    return { name: json.Ident(name), type }
+}
+
+export function ArrowFunction(args: string[], body: Block|Expr): ArrowFunction {
+    return { kind: 'ArrowFunction', args: args.map(x => FunctionArg(x)), body }
 }
 
 export type PrimaryExpr = Expr
@@ -180,16 +188,43 @@ export interface Statement {
     body: Block | Declaration |/* If | Breakable | Terminator |*/ Assignment | Expr 
 }
 
+export function ExprStatement(body: Expr): Statement {
+    return { kind: 'Statement', body }
+}
+
 export interface Block {
     kind: 'Block'
     body: Statement[]
 }
 
+export function Block(body: Statement[]): Block {
+    return { kind: 'Block', body }
+}
+
 export interface Declaration {
     kind: 'Declaration'
     declop: 'const'|'let'
+    // export: boolean
     name: Ident
     expr: Expr
+}
+
+export function Declaration(declop: 'const'|'let', name: string, expr: Expr): Declaration {
+    return { kind: 'Declaration', declop, name: json.Ident(name), expr }
+}
+
+export interface Import {
+
+}
+
+export interface Module {
+    kind: 'Module'
+    decls: Declaration[]
+    imports: Import[]
+}
+
+export function Module(decls: Declaration[]): Module {
+    return { kind: 'Module', decls, imports: [] }
 }
 
 `
@@ -209,11 +244,11 @@ Type = Ident | PrimitiveType | LiteralType | FunctionType | ObjectType | ArrayTy
 `
 
 export interface Declaration {
-    type: Type
+    type?: Type
 }
 
 export interface FunctionArg {
-    type: Type
+    type?: Type
 }
 
 export interface ArrowFunction {
