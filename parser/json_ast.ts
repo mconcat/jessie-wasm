@@ -49,6 +49,10 @@ export interface Ident {
   data: string,
 }
 
+export function Ident(data: string): Ident {
+  return { kind: 'Ident', data }
+}
+
 export function applyIdent(value: Token): Ident {
   return { kind: 'Ident', data: value.text }
 }

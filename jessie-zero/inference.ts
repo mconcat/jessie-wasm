@@ -1,24 +1,45 @@
-import * as typing from './typing';
 import * as ast from './ast';
 
 // https://www.typescriptlang.org/static/TypeScript%20Interfaces-34f1ad12132fb463bd1dfe5b85c5b2e6.png
 // https://www.typescriptlang.org/static/TypeScript%20Types-4cbf7b9d45dc0ec8d18c6c7a0c516114.png
-export interface TypeDeclaration {
-    kind: 'TypeDeclaration'
-    isInterface: boolean
-    decl: typing.Type
-}
+
+// some assumptions:
+// - all function parameters have type annotated
+//   - unless they are passed as a lambda, and the type can be inferred
+// - function return type may not be annotated if they can be inferred
+// - interface types are complete(no index types)
+// - index types are used as mapping type only and cannot overlap with plain objects
 
 export interface Env {
-    decls: TypeDeclaration[]
-    vars: {[key: string]: typing.Type}
+    decls: {[key: string]: ast.TypeDeclaration}
+    vars: {[key: string]: ast.Type}[] // block scoped, rightmost = innermost
 }
 
-export interface TypedExpr {
-    kind: 'TypedExpr'
-    expr: ast.Expr
-    type?: typing.Type
+export function reduce(decls: Env["decls"], type: ast.Type): (ast.Type|undefined) {
+    switch (type.kind) {
+    case 'Ident':
+        return reduce(decls, decls[type.data].type)
+    case 'LiteralType':
+        return type
+    case 'PrimitiveType':
+        return type
+    case 'ArrayType':
+        return ast.ArrayType(reduce(decls, type.type))
+    case 'ObjectType':
+        return type.index 
+            ? ast.IndexedObjectType(type.index[0], reduce(decls, type.index[1])) 
+            : ast.ObjectType(type.args.map(arg => ast.NamedType()))
+    case 'TupleType':
+    case 'FunctionType':
+    case 'OptionalType':
+    }
 }
+
+export function reduceUnion(env: Env["decls"], type: ast.Type): ast.Type {
+
+}
+
+export function checkDeclaration(env: Env, decl: ast.Declaration): 
 
 export function TypedExpr(expr: ast.Expr, type: typing.Type): TypedExpr {
     return { kind: 'TypedExpr', expr, type }
